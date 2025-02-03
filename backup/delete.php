@@ -2,7 +2,7 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: PUT, OPTIONS");
+header("Access-Control-Allow-Methods: DELETE, OPTIONS");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
@@ -33,21 +33,13 @@ if (isset($_GET['id'])) {
     return;
 }
 
-$data = json_decode(file_get_contents("php://input"));
-if (!$data) {
-    $common->errorHandling('data', $tablename);
-    return;
-}
-
 $dbclass = new DBClass();
 $connection = $dbclass->getConnection();
 
 $main = new Main($connection, $tablename);
 
-$list = $common->map_payload_to_table_data($data);
-
-if ($main->update($id, $list)) {
-    $common->errorHandling('update_success', $tablename, true);
+if ($main->delete($id)) {
+    $common->errorHandling('delete_success', $tablename, true);
 } else {
-    $common->errorHandling('update_error', $tablename);
+    $common->errorHandling('delete_error', $tablename);
 }

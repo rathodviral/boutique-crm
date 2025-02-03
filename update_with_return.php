@@ -43,11 +43,11 @@ $dbclass = new DBClass();
 $connection = $dbclass->getConnection();
 
 $main = new Main($connection, $tablename);
-
 $list = $common->map_payload_to_table_data($data);
 
-if ($main->update($id, $list)) {
-    $common->errorHandling('update_success', $tablename, true);
+$stmt = $main->update_with_return($id, $list);
+if ($stmt->execute()) {
+    $common->read_data_from_table($main);
 } else {
-    $common->errorHandling('update_error', $tablename);
+    $common->errorHandling('update_error', $stmt->errorInfo()[2]);
 }

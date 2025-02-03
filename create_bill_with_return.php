@@ -2,7 +2,7 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: PUT, OPTIONS");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
@@ -16,38 +16,30 @@ include_once 'main.php';
 
 $common = new Common();
 
-$tablename = '';
-$id = '';
-
-if (isset($_GET['tablename'])) {
-    $tablename = $_GET['tablename'];
-} else {
-    $common->errorHandling('table');
-    return;
-}
-
-if (isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-} else {
-    $common->errorHandling('id');
-    return;
-}
-
 $data = json_decode(file_get_contents("php://input"));
 if (!$data) {
-    $common->errorHandling('data', $tablename);
+    $common->errorHandling('data', 'bill');
     return;
 }
 
 $dbclass = new DBClass();
 $connection = $dbclass->getConnection();
 
-$main = new Main($connection, $tablename);
-
+$main = new Main($connection, 'bill');
 $list = $common->map_payload_to_table_data($data);
 
-if ($main->update($id, $list)) {
-    $common->errorHandling('update_success', $tablename, true);
+$stmt = $main->create_with_return($list);
+if ($stmt->execute() && isset($data->items)) {
+    $list_stock = array();
+    for ($i = 0; $i < count($data->items); $i++) {
+        $item = $data->items[$i];
+        array_push($list_stock, $item);
+    };
+    if ($main->update_multi($list_stock)) {
+        $common->read_data_from_table($main);
+    } else {
+        $common->errorHandling('update_error', $stmt->errorInfo()[2]);
+    }
 } else {
-    $common->errorHandling('update_error', $tablename);
+    $common->errorHandling('create_error', $stmt->errorInfo()[2]);
 }

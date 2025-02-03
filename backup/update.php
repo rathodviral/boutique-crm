@@ -44,7 +44,19 @@ $connection = $dbclass->getConnection();
 
 $main = new Main($connection, $tablename);
 
-$list = $common->map_payload_to_table_data($data);
+$list = array();
+
+foreach ($data as $key => $value) {
+    $update_val = $value;
+    if ($key === 'detail') {
+        $update_val = json_encode($value);
+    }
+    if ($key === 'isActive') {
+        $update_val = $value ? 1 : 0;
+    }
+    $item = array("label" => $key, "value" => $update_val);
+    array_push($list, $item);
+}
 
 if ($main->update($id, $list)) {
     $common->errorHandling('update_success', $tablename, true);

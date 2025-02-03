@@ -34,38 +34,7 @@ if ($count > 0) {
     $exp["data"] = array();
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        extract($row);
-        $p  = array();
-        if (isset($id)) {
-            $p["id"] = $id;
-        }
-        // if (isset($isActive)) {
-        //     $p["isActive"] = $isActive == 1;
-        // }
-        if (isset($detail)) {
-            $p["detail"] = json_decode($detail);
-        }
-        if (isset($category_detail)) {
-            $p["categoryDetail"] = json_decode($category_detail);
-        }
-        if (isset($sub_category_detail)) {
-            $p["subCategoryDetail"] = json_decode($sub_category_detail);
-        }
-        if (isset($stock_detail)) {
-            $p["stockDetail"] = json_decode($stock_detail);
-        }
-        if (isset($worker_detail)) {
-            $p["workerDetail"] = json_decode($worker_detail);
-        }
-        if (isset($amount)) {
-            $p["amount"] = json_decode($amount);
-        }
-        if (isset($cost)) {
-            $p["cost"] = json_decode($cost);
-        }
-        if (isset($expense)) {
-            $p["expense"] = json_decode($expense);
-        }
+        $p  = $common->map_table_data_to_object($row);
         array_push($exp["data"], $p);
     }
     http_response_code(200);

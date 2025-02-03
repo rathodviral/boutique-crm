@@ -35,11 +35,33 @@ $dbclass = new DBClass();
 $connection = $dbclass->getConnection();
 
 $main = new Main($connection, $tablename);
+$list = array();
 
-$list = $common->map_payload_to_table_data($data);
+foreach ($data as $key => $value) {
+    $item = array("create_label" => $key, "create_value" => $key === 'details' ? json_encode($value) : $value);
+    array_push($list, $item);
+}
 
 if ($main->create($list)) {
-    $common->errorHandling('create_success', $tablename, true);
+    $stmt = $main->read_last();
+    $count = $stmt->rowCount();
+    if ($count > 0) {
+        $exp = array();
+        $exp["status"] = true;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            extract($row);
+            $exp["id"] = $id;
+            $exp["details"] = json_decode($details);
+            $exp["label"] = $label;
+            if ($tablename === 'sub_category') {
+                $exp["categoryId"] = $category_id;
+            }
+        }
+        http_response_code(200);
+        die(json_encode($exp));
+    } else {
+        $common->errorHandling('create_read_error', $tablename, true);
+    }
 } else {
     $common->errorHandling('create_error', $tablename);
 }
